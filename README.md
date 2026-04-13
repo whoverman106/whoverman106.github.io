@@ -1,1 +1,580 @@
 # whoverman106.github.io
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skai — Client Onboarding Intake</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#406EF1;--blue-dark:#2a52c9;--night:#111428;--mid-blue:#669AD2;--light-blue:#A2D8EF;
+  --grey:#878F91;--light-grey:#EFF4F6;--gold:#FFB900;--coral:#FF8161;
+  --white:#fff;--border:#dde3f0;--text:#111428;--text-muted:#878F91;
+}
+body{font-family:'Montserrat',sans-serif;background:var(--light-grey);color:var(--text);min-height:100vh;padding:2rem 1rem}
+a{color:var(--blue)}
+
+/* Shell */
+.shell{max-width:900px;margin:0 auto}
+
+/* Header */
+.hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-mark{width:32px;height:32px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-mark svg{width:18px;height:18px}
+.logo-name{font-size:16px;font-weight:700;color:var(--night);letter-spacing:-.02em}
+.logo-sub{font-size:11px;color:var(--grey);font-weight:500;margin-top:1px}
+.step-counter{font-size:12px;color:var(--grey);font-weight:600}
+
+/* Progress */
+.prog-wrap{margin-bottom:2rem}
+.prog-labels{display:flex;justify-content:space-between;margin-bottom:8px}
+.prog-label{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--grey);transition:color .2s}
+.prog-label.active{color:var(--blue)}
+.prog-label.done{color:var(--mid-blue)}
+.prog-track{height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--mid-blue));border-radius:2px;transition:width .4s ease}
+
+/* Card */
+.card{background:var(--white);border-radius:16px;padding:2.5rem;box-shadow:0 1px 12px rgba(17,20,40,.07)}
+
+/* Step header */
+.step-hdr{margin-bottom:2rem}
+.step-hdr h2{font-size:22px;font-weight:700;color:var(--night);margin-bottom:6px;letter-spacing:-.02em}
+.step-hdr p{font-size:13px;color:var(--grey);line-height:1.6;max-width:580px}
+
+/* Section */
+.sec{margin-bottom:2rem}
+.sec-title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* Form */
+.frow{margin-bottom:1rem}
+.frow label{display:block;font-size:11px;font-weight:600;color:var(--text);margin-bottom:5px;letter-spacing:.02em}
+.frow input,.frow select,.frow textarea{width:100%;padding:10px 13px;font-size:13px;font-family:'Montserrat',sans-serif;border:1.5px solid var(--border);border-radius:10px;background:var(--white);color:var(--text);transition:border-color .15s,box-shadow .15s}
+.frow input:focus,.frow select:focus,.frow textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(64,110,241,.1)}
+.frow select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23878F91' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.frow textarea{resize:vertical;line-height:1.6;min-height:80px}
+.frow .hint{font-size:11px;color:var(--grey);margin-top:4px;line-height:1.4}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.required{color:var(--coral)}
+
+/* Info banner */
+.banner{background:#f0f5ff;border:1.5px solid #c5d6fb;border-radius:10px;padding:11px 15px;font-size:12px;color:#2a52c9;margin-bottom:1.5rem;display:flex;align-items:flex-start;gap:9px;line-height:1.5;font-weight:500}
+.banner-icon{flex-shrink:0;margin-top:1px;font-size:14px}
+
+/* Publisher grid — single unified grid */
+.pub-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:8px;margin-bottom:1rem}
+.pcard{border:1.5px solid var(--border);border-radius:12px;padding:14px 8px 11px;cursor:pointer;text-align:center;background:var(--white);transition:all .15s;position:relative;user-select:none}
+.pcard:hover{border-color:var(--mid-blue);transform:translateY(-1px);box-shadow:0 4px 12px rgba(64,110,241,.1)}
+.pcard.sel{border:2px solid var(--blue);background:#f0f5ff}
+.pcard.sel .ck{opacity:1}
+.pcard.unsure-state{border:2px dashed var(--gold);background:#fffcf0}
+.ck{position:absolute;top:7px;right:7px;width:17px;height:17px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s}
+.ck svg{width:9px;height:9px;stroke:white;stroke-width:2.5;fill:none}
+.picon{width:40px;height:40px;border-radius:10px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700}
+.pname{font-size:11px;font-weight:600;color:var(--text);line-height:1.3}
+.psub{font-size:10px;color:var(--grey);margin-top:2px}
+.unsure-badge{font-size:9px;color:var(--gold);font-weight:700;letter-spacing:.04em;margin-top:4px}
+
+/* Channel group header */
+.chan-hdr{display:flex;align-items:center;justify-content:space-between;margin:20px 0 10px}
+.chan-hdr:first-child{margin-top:0}
+.chan-left{display:flex;align-items:center;gap:8px}
+.chan-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.chan-name{font-size:12px;font-weight:700;color:var(--text)}
+.chan-badge{font-size:11px;color:var(--blue);background:#f0f5ff;padding:2px 8px;border-radius:12px;font-weight:600}
+.sel-all{font-size:11px;color:var(--blue);border:none;background:none;cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:600;padding:2px 0}
+.sel-all:hover{text-decoration:underline}
+
+/* Chips */
+.chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chip{padding:6px 13px;border-radius:20px;font-size:12px;font-weight:500;background:var(--white);color:var(--text);border:1.5px solid var(--border);cursor:pointer;transition:all .15s;font-family:'Montserrat',sans-serif}
+.chip:hover{border-color:var(--mid-blue)}
+.chip.sel{background:var(--blue);color:white;border-color:var(--blue)}
+
+/* Account table */
+.acct-table{border:1.5px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:1rem}
+.acct-thead{display:grid;grid-template-columns:180px 1fr 1fr 150px;background:var(--light-grey);padding:9px 14px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--grey);gap:10px}
+.acct-row{display:grid;grid-template-columns:180px 1fr 1fr 150px;padding:9px 14px;border-top:1px solid var(--border);align-items:center;gap:10px}
+.acct-row:nth-child(even){background:#fafbfe}
+.pub-lbl{font-size:12px;font-weight:600;display:flex;align-items:center;gap:7px}
+.pub-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.acct-row input{padding:6px 10px;font-size:12px;font-family:'Montserrat',sans-serif;border:1.5px solid var(--border);border-radius:7px;background:var(--white);color:var(--text);width:100%}
+.acct-row input:focus{outline:none;border-color:var(--blue)}
+
+/* Summary */
+.sum-card{border:1.5px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:1.5rem}
+.sum-head{background:var(--night);padding:18px 22px;display:flex;justify-content:space-between;align-items:center}
+.sum-head h3{font-size:15px;font-weight:700;color:white;letter-spacing:-.01em}
+.sum-head span{font-size:12px;color:rgba(255,255,255,.5);font-weight:500}
+.sum-body{padding:20px 22px}
+.sum-sec{margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--border)}
+.sum-sec:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}
+.sum-sec-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--grey);margin-bottom:10px}
+.sum-pills{display:flex;flex-wrap:wrap;gap:5px}
+.sum-pill{padding:4px 11px;border-radius:20px;font-size:12px;font-weight:500}
+.sum-pill.search{background:#e8effe;color:#2a52c9}
+.sum-pill.retail{background:#fff4d9;color:#8a5a00}
+.sum-pill.social{background:#f3f0ff;color:#5b21b6}
+.sum-pill.unsure{background:#fffcf0;color:#a07000;border:1px dashed var(--gold)}
+.meta-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.meta-item label{font-size:11px;color:var(--grey);display:block;margin-bottom:2px;font-weight:500}
+.meta-item span{font-size:13px;color:var(--text);font-weight:600}
+
+/* Buttons */
+.btn-row{display:flex;justify-content:space-between;align-items:center;margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+.btn{padding:11px 22px;font-size:13px;font-weight:600;border-radius:10px;cursor:pointer;font-family:'Montserrat',sans-serif;transition:all .15s;letter-spacing:.01em}
+.btn-ghost{background:white;color:var(--text);border:1.5px solid var(--border)}.btn-ghost:hover{background:var(--light-grey)}
+.btn-primary{background:var(--blue);color:white;border:1.5px solid var(--blue)}.btn-primary:hover{background:var(--blue-dark);border-color:var(--blue-dark)}
+.btn-export{background:white;color:#1a7a4a;border:1.5px solid #1a7a4a;font-size:12px;padding:9px 15px}.btn-export:hover{background:#f0faf4}
+.btn-right{display:flex;gap:8px;align-items:center}
+
+/* Completion */
+.done-wrap{text-align:center;padding:2rem 1rem}
+.done-icon{width:64px;height:64px;border-radius:50%;background:#f0faf4;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem}
+.done-icon svg{width:30px;height:30px;stroke:#1a7a4a;stroke-width:2;fill:none}
+.stat-row{display:flex;justify-content:center;gap:40px;margin:1.5rem 0 2rem;flex-wrap:wrap}
+.stat-num{font-size:32px;font-weight:700;color:var(--blue);letter-spacing:-.02em}
+.stat-lbl{font-size:11px;color:var(--grey);margin-top:3px;font-weight:500}
+.next-steps{background:var(--light-grey);border-radius:12px;padding:1.25rem 1.5rem;text-align:left;max-width:500px;margin:0 auto}
+.next-steps h4{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--grey);margin-bottom:12px}
+.ns-item{display:flex;align-items:flex-start;gap:10px;font-size:12px;color:var(--text);margin-bottom:8px;line-height:1.5;font-weight:500}
+.ns-dot{width:20px;height:20px;border-radius:50%;background:var(--blue);color:white;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+
+/* Step */
+.step{display:none}.step.active{display:block}
+
+@media(max-width:640px){
+  .card{padding:1.5rem 1.25rem}
+  .grid2,.grid3{grid-template-columns:1fr}
+  .acct-thead,.acct-row{grid-template-columns:1fr 1fr}
+  .acct-thead div:nth-child(3),.acct-thead div:nth-child(4),.acct-row input:nth-child(3),.acct-row input:nth-child(4){display:none}
+  .prog-labels{display:none}
+  .meta-grid{grid-template-columns:1fr 1fr}
+  .step-counter{display:none}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<div class="hdr">
+  <div class="logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 18 18" fill="none"><rect x="2" y="2" width="6" height="6" rx="1.5" fill="white"/><rect x="10" y="2" width="6" height="6" rx="1.5" fill="white" opacity=".65"/><rect x="2" y="10" width="6" height="6" rx="1.5" fill="white" opacity=".65"/><rect x="10" y="10" width="6" height="6" rx="1.5" fill="white" opacity=".3"/></svg>
+    </div>
+    <div><div class="logo-name">Skai</div><div class="logo-sub">Client onboarding intake</div></div>
+  </div>
+  <div class="step-counter" id="step-counter">Step 1 of 5</div>
+</div>
+
+<div class="prog-wrap">
+  <div class="prog-labels" id="prog-labels"></div>
+  <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+</div>
+
+<div class="card">
+
+<!-- STEP 1: Publishers -->
+<div class="step active" id="step1">
+  <div class="step-hdr">
+    <h2>Publisher scope</h2>
+    <p>Select every platform you run or plan to run across search, retail media, and social — all in one place. Click once to confirm, again to mark as <strong style="color:var(--gold)">Exploring</strong>, again to deselect.</p>
+  </div>
+  <div class="banner"><span class="banner-icon">ℹ️</span><span>Skai connects <strong>retail, search, and social</strong> channels into one platform. Select everything in scope — even exploratory channels help your onboarding manager plan the right configuration.</span></div>
+  <div id="all-pubs"></div>
+  <div class="btn-row"><div></div><button class="btn btn-primary" onclick="go(2)">Next: Campaign details →</button></div>
+</div>
+
+<!-- STEP 2: Campaign details -->
+<div class="step" id="step2">
+  <div class="step-hdr">
+    <h2>Campaign details</h2>
+    <p>Tell us about your ad types, campaign objectives, and tracking setup.</p>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Ad types in retail media</div>
+    <div class="chip-row" id="chips-adtype"></div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Primary campaign objectives</div>
+    <div class="chip-row" id="chips-obj"></div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Measurement &amp; KPIs</div>
+    <div class="grid2">
+      <div class="frow"><label>Primary KPI</label>
+        <select id="f-kpi"><option value="">Select...</option><option>ROAS</option><option>CPA</option><option>Revenue</option><option>Leads / Form fills</option><option>ACOS</option><option>Impression Share</option><option>Custom metric</option></select></div>
+      <div class="frow"><label>Attribution / conversion window</label>
+        <select id="f-window"><option value="">Select...</option><option>7 days</option><option>14 days</option><option>30 days</option><option>30 days</option><option>60 days</option><option>90 days</option><option>Custom</option></select></div>
+    </div>
+    <div class="grid2">
+      <div class="frow"><label>True north data source</label>
+        <select id="f-datasource"><option value="">Select...</option><option>Google Analytics 4</option><option>Adobe Analytics</option><option>Hubspot</option><option>Salesforce</option><option>Platform-native (e.g. Amazon)</option><option>MTA / Custom</option><option>Other</option></select></div>
+      <div class="frow"><label>Currently using smart / auto-bidding?</label>
+        <select id="f-smartbid"><option value="">Select...</option><option>Yes — fully automated</option><option>Yes — partially</option><option>No</option><option>Not sure</option></select></div>
+    </div>
+    <div class="frow"><label>Main conversion events to track</label><input type="text" id="f-conversions" placeholder="e.g. Purchase, Lead Form Submit, Add to Cart"></div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Tracking setup</div>
+    <div class="frow"><label>Sample tracking URL template</label><input type="text" id="f-url" placeholder="{lpurl}?utm_source=google&utm_medium=cpc&utm_campaign={campaignid}"></div>
+    <div class="frow"><label>Tracking notes</label><textarea id="f-search-notes" placeholder="SA360 floodlights, cross-account MCCs, known gaps, cross-channel attribution notes..."></textarea></div>
+  </div>
+
+  <div class="btn-row"><button class="btn btn-ghost" onclick="go(1)">← Back</button><button class="btn btn-primary" onclick="go(3)">Next: Account IDs →</button></div>
+</div>
+
+<!-- STEP 3: Account IDs -->
+<div class="step" id="step3">
+  <div class="step-hdr">
+    <h2>Account credentials</h2>
+    <p>Provide account names and IDs for each confirmed platform. Leave blank if you'll share these at kickoff — nothing here blocks submission.</p>
+  </div>
+  <div class="banner"><span class="banner-icon">🔒</span><span>This information is used only to set up your Skai profiles. Your onboarding manager will collect any missing IDs during kickoff.</span></div>
+  <div id="acct-table-wrap"></div>
+  <div class="btn-row"><button class="btn btn-ghost" onclick="go(2)">← Back</button><button class="btn btn-primary" onclick="go(4)">Next: Integrations →</button></div>
+</div>
+
+<!-- STEP 4: Integrations + Contact -->
+<div class="step" id="step4">
+  <div class="step-hdr">
+    <h2>Integrations &amp; contact</h2>
+    <p>Select your data integrations, 3rd-party measurement tools, and provide primary contact details.</p>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">3rd-party attribution &amp; measurement</div>
+    <div class="chip-row" id="chips-3p"></div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Data integrations needed in Skai</div>
+    <div class="chip-row" id="chips-integrations"></div>
+    <div class="frow" style="margin-top:1rem"><label>Additional integration notes</label><textarea id="f-retail-notes" placeholder="Unlisted tools, custom API requirements, Slack alerts, reporting needs..."></textarea></div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Brand &amp; agency</div>
+    <div class="grid2">
+      <div class="frow"><label>Client / brand name <span class="required">*</span></label><input type="text" id="f-brand" placeholder="e.g. Acme Corp"></div>
+      <div class="frow"><label>Agency name</label><input type="text" id="f-agency" placeholder="e.g. Blue Wheel Media"></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Primary contact</div>
+    <div class="grid2">
+      <div class="frow"><label>Full name <span class="required">*</span></label><input type="text" id="f-name" placeholder="Jane Smith"></div>
+      <div class="frow"><label>Email address <span class="required">*</span></label><input type="email" id="f-email" placeholder="jane@brand.com"></div>
+    </div>
+    <div class="grid3">
+      <div class="frow"><label>Account time zone</label>
+        <select id="f-tz"><option value="">Select...</option><option>EST</option><option>CST</option><option>MST</option><option>PST</option><option>GMT</option><option>CET</option><option>Other</option></select></div>
+      <div class="frow"><label>Account currency</label>
+        <select id="f-currency"><option value="">Select...</option><option>USD</option><option>CAD</option><option>EUR</option><option>GBP</option><option>AUD</option><option>Other</option></select></div>
+      <div class="frow"><label>Monthly budget range</label>
+        <select id="f-budget"><option value="">Select...</option><option>Under $10K</option><option>$10K – $50K</option><option>$50K – $250K</option><option>$250K – $1M</option><option>$1M+</option></select></div>
+    </div>
+  </div>
+
+  <div class="btn-row"><button class="btn btn-ghost" onclick="go(3)">← Back</button><button class="btn btn-primary" onclick="go(5)">Review &amp; submit →</button></div>
+</div>
+
+<!-- STEP 5: Review -->
+<div class="step" id="step5">
+  <div class="step-hdr">
+    <h2>Review your onboarding scope</h2>
+    <p>Confirm everything looks right before submitting to your Skai onboarding team.</p>
+  </div>
+  <div class="sum-card">
+    <div class="sum-head"><h3 id="sum-brand">—</h3><span id="sum-date"></span></div>
+    <div class="sum-body" id="sum-body"></div>
+  </div>
+  <div class="frow"><label>Additional context or open questions</label><textarea rows="3" id="f-notes" placeholder="Launch timeline, known constraints, integrations to prioritize, anything we should know..."></textarea></div>
+  <div class="btn-row">
+    <button class="btn btn-ghost" onclick="go(4)">← Back</button>
+    <div class="btn-right">
+      <button class="btn btn-export" onclick="exportCSV()">↓ Export CSV</button>
+      <button class="btn btn-primary" onclick="submitForm()">Submit to Skai ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 6: Done -->
+<div class="step" id="step6">
+  <div class="done-wrap">
+    <div class="done-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+    <h2 style="font-size:22px;font-weight:700;color:var(--night);margin-bottom:8px;letter-spacing:-.02em">Intake submitted successfully</h2>
+    <p style="font-size:13px;color:var(--grey);max-width:460px;margin:0 auto;line-height:1.7;font-weight:500">Your Skai onboarding manager will review this and reach out within 1 business day to schedule your kickoff call.</p>
+    <div class="stat-row" id="stat-row"></div>
+    <div class="next-steps">
+      <h4>What happens next</h4>
+      <div class="ns-item"><div class="ns-dot">1</div><span>Onboarding manager reviews your publisher scope and credentials</span></div>
+      <div class="ns-item"><div class="ns-dot">2</div><span>Kickoff call scheduled — typically within 2 business days</span></div>
+      <div class="ns-item"><div class="ns-dot">3</div><span>Skai profiles created and tracking validated per publisher</span></div>
+      <div class="ns-item"><div class="ns-dot">4</div><span>Go-live with algorithmic optimization and unified reporting</span></div>
+    </div>
+    <div style="margin-top:1.5rem">
+      <button class="btn btn-export" onclick="exportCSV()">↓ Download submission (CSV)</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /card -->
+</div><!-- /shell -->
+
+<script>
+const TOTAL=6,VISIBLE_STEPS=5;
+const LABELS=['Publishers','Campaign','Account IDs','Integrations','Review','Done'];
+
+const PUBS={
+  search:[
+    {id:'google',name:'Google Ads',icon:'G',color:'#4285F4',bg:'#e8f0fe',sub:'Search / PMax'},
+    {id:'microsoft',name:'Microsoft Ads',icon:'M',color:'#0078D4',bg:'#ddeeff',sub:'Bing / MSAN'},
+    {id:'google_pmax',name:'Perf. Max',icon:'P',color:'#34A853',bg:'#e6f4ea',sub:'Google PMax'},
+    {id:'google_shop',name:'Google Shopping',icon:'G',color:'#34A853',bg:'#e6f4ea',sub:'Product ads'},
+    {id:'ms_shop',name:'MS Shopping',icon:'M',color:'#0078D4',bg:'#ddeeff',sub:'Bing Product'},
+    {id:'apple',name:'Apple Search',icon:'',color:'#555',bg:'#f0f0f0',sub:'App Store'},
+  ],
+  retail:[
+    {id:'amazon',name:'Amazon',icon:'a',color:'#FF9900',bg:'#fff3e0',sub:'SP / SB / SD / DSP'},
+    {id:'walmart',name:'Walmart',icon:'W',color:'#0071CE',bg:'#ddeeff',sub:'Connect'},
+    {id:'instacart',name:'Instacart',icon:'i',color:'#43B02A',bg:'#e6f4ea',sub:'Ads'},
+    {id:'kroger',name:'Kroger',icon:'K',color:'#003087',bg:'#ddeeff',sub:'Precision'},
+    {id:'target',name:'Target',icon:'T',color:'#CC0000',bg:'#fce8e6',sub:'Roundel'},
+    {id:'samsclub',name:"Sam's Club",icon:'S',color:'#0067A0',bg:'#ddeeff',sub:'MAP'},
+    {id:'criteo',name:'Criteo',icon:'C',color:'#FF6B2B',bg:'#fde8d8',sub:'Retail media'},
+    {id:'epsilon',name:'Epsilon',icon:'E',color:'#6C3691',bg:'#ede9fe',sub:'Retail media'},
+    {id:'gopuff',name:'Gopuff',icon:'G',color:'#0F3460',bg:'#ddeeff',sub:'Ads'},
+    {id:'chewy',name:'Chewy',icon:'C',color:'#00A8E1',bg:'#ddf4fe',sub:'Sponsored'},
+    {id:'doordash',name:'DoorDash',icon:'D',color:'#FF3008',bg:'#fce8e6',sub:'Ads'},
+    {id:'ebay',name:'eBay',icon:'e',color:'#E53238',bg:'#fce8e6',sub:'Promoted'},
+    {id:'bol',name:'Bol.com',icon:'B',color:'#0099CC',bg:'#ddf4fe',sub:'Sponsored'},
+    {id:'topsort',name:'Topsort',icon:'T',color:'#6B48FF',bg:'#ede9fe',sub:'Retail media'},
+    {id:'moloco',name:'Moloco',icon:'M',color:'#1D2B64',bg:'#ddeeff',sub:'Commerce media'},
+    {id:'koddi',name:'Koddi',icon:'K',color:'#4A90E2',bg:'#ddeeff',sub:'Reserve'},
+  ],
+  social:[
+    {id:'meta',name:'Meta / Facebook',icon:'f',color:'#1877F2',bg:'#e7f0fd',sub:'Ads manager'},
+    {id:'instagram',name:'Instagram',icon:'I',color:'#C13584',bg:'#fce4f3',sub:'Via Meta'},
+    {id:'tiktok',name:'TikTok',icon:'T',color:'#010101',bg:'#f0f0f0',sub:'Ads manager'},
+    {id:'pinterest',name:'Pinterest',icon:'P',color:'#E60023',bg:'#fce8e6',sub:'Ads'},
+    {id:'snapchat',name:'Snapchat',icon:'S',color:'#FFBD00',bg:'#fffde7',sub:'Ads'},
+    {id:'linkedin',name:'LinkedIn',icon:'in',color:'#0A66C2',bg:'#ddeeff',sub:'Campaign Mgr'},
+    {id:'reddit',name:'Reddit',icon:'R',color:'#FF4500',bg:'#fff0e8',sub:'Ads'},
+    {id:'x_twitter',name:'X / Twitter',icon:'X',color:'#111',bg:'#f0f0f0',sub:'Ads'},
+    {id:'youtube',name:'YouTube',icon:'Y',color:'#FF0000',bg:'#fce8e6',sub:'Via Google Ads'},
+  ]
+};
+
+const CHIPS={
+  adtype:['Sponsored Products','Sponsored Brands','Sponsored Display','Sponsored Video','DSP / Programmatic','Onsite Display','Shoppable Video'],
+  obj:['Awareness / Reach','Website Traffic','Lead Generation','App Installs','Catalog Sales / ROAS','Conversions / CPA','Video Views','Engagement','Retargeting'],
+  third_party:['Google Analytics 4','Adobe Analytics','Appsflyer','Branch','Adjust','Kochava','Rockerbox','Triple Whale','Northbeam','Hubspot','Salesforce','DCM / CM360','SA360','None / Platform-native'],
+  integrations:['Google Analytics 4','Salesforce CRM','Hubspot','Shopify','SA360','CM360 / DCM','Amazon Attribution','Custom API','Slack Alerts','Reporting API']
+};
+
+const st={cur:1,sel:{},unsure:{},chips:{adtype:[],obj:[],third_party:[],integrations:[]},accts:{}};
+
+const ck=()=>`<svg viewBox="0 0 10 10"><polyline points="2 5 4 7 8 3" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+function renderAllPubs(){
+  const el=document.getElementById('all-pubs');
+  if(!el)return;
+  const cats=[
+    {key:'search',label:'Search & Shopping',color:'#406EF1',pubs:PUBS.search},
+    {key:'retail',label:'Retail media',color:'#FF9900',pubs:PUBS.retail},
+    {key:'social',label:'Social',color:'#C13584',pubs:PUBS.social},
+  ];
+  let html='';
+  cats.forEach(cat=>{
+    const selCount=cat.pubs.filter(p=>st.sel[p.id]).length;
+    const ids=cat.pubs.map(p=>p.id).join(',');
+    html+=`<div class="chan-hdr">
+      <div class="chan-left">
+        <div class="chan-dot" style="background:${cat.color}"></div>
+        <span class="chan-name">${cat.label}</span>
+        ${selCount?`<span class="chan-badge">${selCount} selected</span>`:''}
+      </div>
+      <button class="sel-all" onclick="selAll('${ids}')">Select all</button>
+    </div>`;
+    html+=`<div class="pub-grid">`;
+    cat.pubs.forEach(p=>{
+      const isSel=!!st.sel[p.id],isU=!!st.unsure[p.id];
+      html+=`<div class="pcard${isSel?' sel':''}${isU?' unsure-state':''}" onclick="togglePub('${p.id}')">
+        <div class="ck">${ck()}</div>
+        <div class="picon" style="background:${p.bg};color:${p.color}">${p.icon}</div>
+        <div class="pname">${p.name}</div>
+        <div class="psub">${p.sub}</div>
+        ${isU?`<div class="unsure-badge">◆ EXPLORING</div>`:''}
+      </div>`;
+    });
+    html+=`</div>`;
+  });
+  el.innerHTML=html;
+}
+
+function togglePub(id){
+  if(st.sel[id]){st.sel[id]=false;st.unsure[id]=true;}
+  else if(st.unsure[id]){st.unsure[id]=false;}
+  else{st.sel[id]=true;st.unsure[id]=false;}
+  renderAllPubs();
+  if(document.getElementById('step3').classList.contains('active'))renderAcctTable();
+}
+
+function selAll(ids){
+  ids.split(',').forEach(id=>{st.sel[id]=true;st.unsure[id]=false;});
+  renderAllPubs();
+}
+
+function renderChips(cid,key,arr){
+  const el=document.getElementById(cid);if(!el)return;
+  el.innerHTML=arr.map(v=>`<div class="chip${st.chips[key].includes(v)?' sel':''}" onclick="toggleChip('${key}','${v.replace(/'/g,"\\'")}')">${v}</div>`).join('');
+}
+function toggleChip(key,val){
+  const a=st.chips[key],i=a.indexOf(val);
+  if(i>-1)a.splice(i,1);else a.push(val);
+  renderChips('chips-adtype','adtype',CHIPS.adtype);
+  renderChips('chips-obj','obj',CHIPS.obj);
+  renderChips('chips-3p','third_party',CHIPS.third_party);
+  renderChips('chips-integrations','integrations',CHIPS.integrations);
+}
+
+function allSel(){return Object.keys(st.sel).filter(id=>st.sel[id]);}
+function allU(){return Object.keys(st.unsure).filter(id=>st.unsure[id]);}
+function pubById(id){return[...Object.values(PUBS)].flat().find(p=>p.id===id);}
+function v(id){return document.getElementById(id)?.value||'';}
+
+function renderAcctTable(){
+  const wrap=document.getElementById('acct-table-wrap');if(!wrap)return;
+  const conf=allSel();
+  if(!conf.length){wrap.innerHTML=`<p style="font-size:13px;color:var(--grey);padding:.75rem 0">No publishers confirmed yet — go back and select your platforms first.</p>`;return;}
+  let h=`<div class="acct-table"><div class="acct-thead"><div>Publisher</div><div>Account name</div><div>MCC / Parent ID</div><div>Customer / Account ID</div></div>`;
+  conf.forEach(id=>{
+    const p=pubById(id);if(!p)return;
+    const s=st.accts[id]||{};
+    h+=`<div class="acct-row"><div class="pub-lbl"><div class="pub-dot" style="background:${p.color}"></div>${p.name}</div>
+      <input placeholder="Account name" value="${s.name||''}" oninput="saveAcct('${id}','name',this.value)">
+      <input placeholder="MCC / Parent ID" value="${s.mcc||''}" oninput="saveAcct('${id}','mcc',this.value)">
+      <input placeholder="Customer ID" value="${s.cid||''}" oninput="saveAcct('${id}','cid',this.value)">
+    </div>`;
+  });
+  h+=`</div><p style="font-size:11px;color:var(--grey);margin-top:8px;font-weight:500">Leave blank if sharing during kickoff — nothing here blocks submission.</p>`;
+  wrap.innerHTML=h;
+}
+function saveAcct(id,f,val){st.accts[id]=st.accts[id]||{};st.accts[id][f]=val;}
+
+function buildSummary(){
+  const brand=v('f-brand')||'—';
+  document.getElementById('sum-brand').textContent=brand;
+  document.getElementById('sum-date').textContent=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  const conf=allSel(),uns=allU();
+  const sids=PUBS.search.map(p=>p.id);
+  const rids=PUBS.retail.map(p=>p.id);
+  const oids=PUBS.social.map(p=>p.id);
+  const pills=(ids,cls)=>ids.map(id=>{const p=pubById(id);return p?`<div class="sum-pill ${cls}">${p.name}</div>`:''}).join('');
+  const upills=ids=>ids.map(id=>{const p=pubById(id);return p?`<div class="sum-pill unsure">◆ ${p.name}</div>`:''}).join('');
+  const sc=conf.filter(id=>sids.includes(id)),su=uns.filter(id=>sids.includes(id));
+  const rc=conf.filter(id=>rids.includes(id)),ru=uns.filter(id=>rids.includes(id));
+  const oc=conf.filter(id=>oids.includes(id)),ou=uns.filter(id=>oids.includes(id));
+  let h=`<div class="sum-sec"><div class="sum-sec-lbl">Contact &amp; account</div><div class="meta-grid">
+    <div class="meta-item"><label>Brand</label><span>${brand}</span></div>
+    <div class="meta-item"><label>Contact</label><span>${v('f-name')||'—'}</span></div>
+    <div class="meta-item"><label>Email</label><span>${v('f-email')||'—'}</span></div>
+    <div class="meta-item"><label>Agency</label><span>${v('f-agency')||'—'}</span></div>
+    <div class="meta-item"><label>Budget</label><span>${v('f-budget')||'—'}</span></div>
+    <div class="meta-item"><label>Primary KPI</label><span>${v('f-kpi')||'—'}</span></div>
+    <div class="meta-item"><label>Attribution window</label><span>${v('f-window')||'—'}</span></div>
+    <div class="meta-item"><label>Data source</label><span>${v('f-datasource')||'—'}</span></div>
+    <div class="meta-item"><label>Smart bidding</label><span>${v('f-smartbid')||'—'}</span></div>
+  </div></div>`;
+  if(sc.length||su.length)h+=`<div class="sum-sec"><div class="sum-sec-lbl">Search &amp; Shopping (${sc.length} confirmed${su.length?' · '+su.length+' exploring':''})</div><div class="sum-pills">${pills(sc,'search')}${upills(su)}</div></div>`;
+  if(rc.length||ru.length)h+=`<div class="sum-sec"><div class="sum-sec-lbl">Retail media (${rc.length} confirmed${ru.length?' · '+ru.length+' exploring':''})</div><div class="sum-pills">${pills(rc,'retail')}${upills(ru)}</div>${st.chips.adtype.length?`<div style="margin-top:8px;font-size:11px;color:var(--grey);font-weight:500">Ad types: ${st.chips.adtype.join(', ')}</div>`:''}</div>`;
+  if(oc.length||ou.length)h+=`<div class="sum-sec"><div class="sum-sec-lbl">Social (${oc.length} confirmed${ou.length?' · '+ou.length+' exploring':''})</div><div class="sum-pills">${pills(oc,'social')}${upills(ou)}</div></div>`;
+  if(st.chips.third_party.length)h+=`<div class="sum-sec"><div class="sum-sec-lbl">3rd-party measurement</div><div class="sum-pills">${st.chips.third_party.map(t=>`<div class="sum-pill" style="background:var(--light-grey);color:var(--text)">${t}</div>`).join('')}</div></div>`;
+  if(st.chips.integrations.length)h+=`<div class="sum-sec"><div class="sum-sec-lbl">Data integrations</div><div class="sum-pills">${st.chips.integrations.map(t=>`<div class="sum-pill" style="background:var(--light-grey);color:var(--text)">${t}</div>`).join('')}</div></div>`;
+  document.getElementById('sum-body').innerHTML=h;
+}
+
+function updateProgress(n){
+  const fill=Math.round(((n-1)/(VISIBLE_STEPS-1))*100);
+  document.getElementById('prog-fill').style.width=Math.min(fill,100)+'%';
+  document.getElementById('step-counter').textContent=n<=VISIBLE_STEPS?`Step ${n} of ${VISIBLE_STEPS}`:'';
+  const labels=document.getElementById('prog-labels');
+  labels.innerHTML=LABELS.slice(0,VISIBLE_STEPS).map((l,i)=>{
+    const num=i+1;
+    const cls=num===n?'active':num<n?'done':'';
+    return`<span class="prog-label ${cls}">${l}</span>`;
+  }).join('');
+}
+
+function go(n){
+  if(n===3)renderAcctTable();
+  if(n===5)buildSummary();
+  st.cur=n;
+  document.querySelectorAll('.step').forEach((s,i)=>s.classList.toggle('active',i+1===n));
+  updateProgress(n);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function submitForm(){
+  const conf=allSel(),uns=allU();
+  const sids=PUBS.search.map(p=>p.id);
+  const rids=PUBS.retail.map(p=>p.id);
+  const oids=PUBS.social.map(p=>p.id);
+  document.getElementById('stat-row').innerHTML=`
+    <div class="stat"><div class="stat-num">${conf.filter(id=>sids.includes(id)).length}</div><div class="stat-lbl">Search platforms</div></div>
+    <div class="stat"><div class="stat-num">${conf.filter(id=>rids.includes(id)).length}</div><div class="stat-lbl">Retail networks</div></div>
+    <div class="stat"><div class="stat-num">${conf.filter(id=>oids.includes(id)).length}</div><div class="stat-lbl">Social platforms</div></div>
+    <div class="stat"><div class="stat-num">${uns.length}</div><div class="stat-lbl">Exploring</div></div>`;
+  go(6);
+}
+
+function exportCSV(){
+  const conf=allSel(),uns=allU();
+  const rows=[
+    ['Field','Value'],
+    ['Brand',v('f-brand')],['Agency',v('f-agency')],['Contact Name',v('f-name')],['Email',v('f-email')],
+    ['Timezone',v('f-tz')],['Currency',v('f-currency')],['Monthly Budget',v('f-budget')],
+    ['Primary KPI',v('f-kpi')],['Attribution Window',v('f-window')],['Conversion Events',v('f-conversions')],
+    ['True North Data Source',v('f-datasource')],['Smart Bidding',v('f-smartbid')],
+    ['Sample Tracking URL',v('f-url')],['Tracking Notes',v('f-search-notes')],
+    ['Additional Notes',v('f-notes')],['',''],
+    ['CONFIRMED PUBLISHERS',''],
+    ...conf.map(id=>{const p=pubById(id);const a=st.accts[id]||{};return[p?.name||id,`Name: ${a.name||''} | MCC: ${a.mcc||''} | CID: ${a.cid||''}`];}),
+    ['',''],['EXPLORING / UNSURE',''],
+    ...uns.map(id=>{const p=pubById(id);return[p?.name||id,'Exploring'];}),
+    ['',''],
+    ['AD TYPES',st.chips.adtype.join('; ')],
+    ['CAMPAIGN OBJECTIVES',st.chips.obj.join('; ')],
+    ['3RD PARTY MEASUREMENT',st.chips.third_party.join('; ')],
+    ['DATA INTEGRATIONS',st.chips.integrations.join('; ')],
+  ];
+  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`skai-onboarding-${(v('f-brand')||'client').replace(/\s+/g,'-').toLowerCase()}-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+// Init
+go(1);
+renderAllPubs();
+renderChips('chips-adtype','adtype',CHIPS.adtype);
+renderChips('chips-obj','obj',CHIPS.obj);
+renderChips('chips-3p','third_party',CHIPS.third_party);
+renderChips('chips-integrations','integrations',CHIPS.integrations);
+</script>
+</body>
+</html>
