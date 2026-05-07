@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amazon Report Validator — Skai</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#111428;--surface:#181c35;--surface2:#1e2340;--border:#2a2f52;--border2:#343a60;--text:#f0ede8;--muted:#8b90b8;--dim:#555c88;--accent:#406EF1;--al:#6b92f5;--a2:#7dd3fc;--green:#3ddc84;--red:#ff5252;--amber:#ffb547;--purple:#a78bfa;--mono:'IBM Plex Mono',monospace;--sans:'DM Sans',sans-serif;--r:6px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:14px;background:var(--bg);color:var(--text);font-family:var(--sans);}
+body{min-height:100vh;}
+.app{display:flex;flex-direction:column;min-height:100vh;}
+header{border-bottom:1px solid var(--border);padding:0 32px;height:56px;display:flex;align-items:center;justify-content:space-between;background:var(--bg);}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:13px;font-weight:500;}
+.logo-mark{width:28px;height:28px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#fff;flex-shrink:0;}
+.header-meta{display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
+.header-tag{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.07em;text-transform:uppercase;}
+.version-tag{font-family:var(--mono);font-size:10px;color:var(--accent);}
+footer{border-top:1px solid var(--border);padding:12px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;}
+.footer-txt{font-family:var(--mono);font-size:10px;color:var(--dim);}
+.footer-txt span{color:var(--muted);}
+main{flex:1;padding:40px 32px;max-width:960px;margin:0 auto;width:100%;}
+#step-upload{text-align:center;padding:60px 0;}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--accent);margin-bottom:16px;}
+h1{font-size:28px;font-weight:300;margin-bottom:8px;letter-spacing:-.02em;}
+.subtitle{font-size:14px;color:var(--muted);margin-bottom:40px;}
+.drop-zone{border:1px dashed var(--border2);border-radius:12px;padding:60px 40px;cursor:pointer;transition:all .2s;background:var(--surface);max-width:600px;margin:0 auto;}
+.drop-zone:hover,.drop-zone.drag{border-color:var(--accent);background:rgba(64,110,241,.06);}
+.drop-icon{font-size:36px;margin-bottom:16px;color:var(--dim);}
+.drop-zone:hover .drop-icon,.drop-zone.drag .drop-icon{color:var(--accent);}
+.drop-label{font-size:15px;font-weight:400;margin-bottom:6px;}
+.drop-sub{font-size:12px;color:var(--muted);font-family:var(--mono);}
+.file-formats{display:flex;gap:8px;justify-content:center;margin-top:24px;flex-wrap:wrap;}
+.fmt-tag{font-family:var(--mono);font-size:10px;padding:3px 8px;border:1px solid var(--border2);border-radius:4px;color:var(--dim);}
+.file-pills{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px;}
+.file-pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-family:var(--mono);background:var(--surface2);border:1px solid var(--border2);border-radius:4px;padding:4px 10px;color:var(--muted);}
+.file-pill .fmt{color:var(--a2);}
+.actions{display:flex;gap:12px;justify-content:center;margin-top:28px;flex-wrap:wrap;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;font-size:13px;font-weight:500;border-radius:var(--r);cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--text);transition:all .15s;font-family:var(--sans);text-decoration:none;}
+.btn:hover{border-color:var(--al);background:var(--surface2);color:var(--al);}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+.btn-primary:hover{background:var(--al);border-color:var(--al);color:#fff;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.step-bar{display:flex;align-items:center;margin-bottom:32px;}
+.step-item{display:flex;align-items:center;gap:8px;font-size:12px;font-family:var(--mono);color:var(--dim);}
+.step-item.active{color:var(--accent);}
+.step-item.done{color:var(--green);}
+.step-num{width:22px;height:22px;border-radius:50%;border:1px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;}
+.step-line{flex:1;height:1px;background:var(--border);margin:0 12px;min-width:40px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin-bottom:16px;}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;}
+.card-title{font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px;}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;font-family:var(--mono);font-weight:500;}
+.b-ok{background:rgba(61,220,132,.1);color:var(--green);border:1px solid rgba(61,220,132,.2);}
+.b-warn{background:rgba(255,181,71,.1);color:var(--amber);border:1px solid rgba(255,181,71,.2);}
+.b-err{background:rgba(255,82,82,.1);color:var(--red);border:1px solid rgba(255,82,82,.2);}
+.b-fmt{background:rgba(64,110,241,.12);color:var(--al);border:1px solid rgba(64,110,241,.3);}
+.b-weekly{background:rgba(125,211,252,.1);color:var(--a2);border:1px solid rgba(125,211,252,.25);}
+.b-daily{background:rgba(61,220,132,.08);color:var(--green);border:1px solid rgba(61,220,132,.2);}
+.b-template{background:rgba(167,139,250,.12);color:var(--purple);border:1px solid rgba(167,139,250,.3);}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:16px;}
+.metric{background:var(--surface2);border-radius:var(--r);padding:12px 14px;border:1px solid var(--border);}
+.metric-label{font-size:10px;font-family:var(--mono);color:var(--dim);letter-spacing:.06em;margin-bottom:4px;text-transform:uppercase;}
+.metric-val{font-size:22px;font-weight:300;}
+.metric-val.accent{color:var(--al);}
+.metric-val.warn{color:var(--amber);}
+.metric-val.err{color:var(--red);}
+.col-map-table{width:100%;border-collapse:collapse;margin-bottom:16px;font-size:11px;font-family:var(--mono);}
+.col-map-table th{text-transform:uppercase;letter-spacing:.06em;font-size:10px;color:var(--dim);padding:5px 10px;border-bottom:1px solid var(--border);text-align:left;font-weight:500;background:var(--surface2);}
+.col-map-table td{padding:5px 10px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.col-map-table tr:last-child td{border-bottom:none;}
+.cmt-file{color:var(--a2);}
+.cmt-tmpl{color:var(--muted);}
+.cmt-ok{color:var(--green);text-align:center;}
+.cmt-miss{color:var(--red);text-align:center;}
+.gran-banner{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:var(--r);margin-bottom:16px;font-size:12px;flex-wrap:wrap;}
+.gran-banner.daily{background:rgba(61,220,132,.06);border:1px solid rgba(61,220,132,.2);}
+.gran-banner.weekly{background:rgba(125,211,252,.06);border:1px solid rgba(125,211,252,.2);}
+.gran-banner.template{background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.2);}
+.gran-label{font-family:var(--mono);font-size:11px;font-weight:500;}
+.gran-banner.daily .gran-label{color:var(--green);}
+.gran-banner.weekly .gran-label{color:var(--a2);}
+.gran-banner.template .gran-label{color:var(--purple);}
+.gran-desc{color:var(--muted);font-size:11px;}
+.dedup-widget{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin-bottom:16px;}
+.dedup-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
+.dedup-title{font-size:12px;font-weight:500;font-family:var(--mono);color:var(--text);}
+.dedup-bars{display:flex;flex-direction:column;gap:8px;}
+.dedup-row{display:flex;align-items:center;gap:10px;}
+.dedup-row-label{font-size:11px;font-family:var(--mono);color:var(--muted);width:110px;flex-shrink:0;text-align:right;}
+.dedup-track{flex:1;height:12px;background:var(--border);border-radius:6px;overflow:hidden;}
+.dedup-fill{height:100%;border-radius:6px;}
+.dedup-fill.ok{background:var(--green);}
+.dedup-fill.warn{background:var(--amber);}
+.dedup-fill.err{background:var(--red);}
+.dedup-row-val{font-size:11px;font-family:var(--mono);color:var(--text);width:80px;flex-shrink:0;}
+.dedup-summary{margin-top:12px;font-size:12px;color:var(--muted);padding-top:10px;border-top:1px solid var(--border);}
+.dedup-summary strong{color:var(--text);}
+.dedup-sample{margin-top:8px;}
+.dedup-sample-title{font-size:10px;font-family:var(--mono);color:var(--dim);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;}
+.dedup-sample-row{font-size:11px;font-family:var(--mono);color:var(--amber);padding:2px 0;}
+.issues{margin-top:4px;}
+.issue{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;color:var(--muted);}
+.issue:last-child{border-bottom:none;}
+.issue-icon{flex-shrink:0;margin-top:1px;}
+.issue.err .issue-icon{color:var(--red);}
+.issue.warn .issue-icon{color:var(--amber);}
+.issue.info .issue-icon{color:var(--a2);}
+.tbl-wrap{overflow-x:auto;margin-top:4px;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);padding:6px 10px;border-bottom:1px solid var(--border);text-align:left;font-weight:500;}
+td{padding:6px 10px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--surface2);}
+td.name{font-family:var(--mono);font-size:11px;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+td.num{text-align:right;color:var(--muted);font-family:var(--mono);}
+td.spend-val{text-align:right;font-family:var(--mono);font-size:11px;}
+.more-row{font-size:11px;color:var(--dim);font-family:var(--mono);padding:8px 10px;}
+.output-box{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r);padding:16px;font-family:var(--mono);font-size:11px;color:var(--a2);word-break:break-all;line-height:1.8;max-height:180px;overflow-y:auto;}
+.output-actions{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap;}
+.copy-feedback{font-size:11px;font-family:var(--mono);color:var(--green);opacity:0;transition:opacity .3s;}
+.copy-feedback.show{opacity:1;}
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:20px;overflow-x:auto;}
+.tab{font-family:var(--mono);font-size:11px;padding:10px 16px;cursor:pointer;color:var(--dim);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;background:transparent;border-left:none;border-right:none;border-top:none;transition:all .15s;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--al);border-bottom-color:var(--accent);}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+.decision-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:32px;text-align:center;max-width:580px;margin:0 auto 20px;}
+.decision-title{font-size:18px;font-weight:300;margin-bottom:8px;}
+.decision-body{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.6;}
+.decision-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+.decision-opt{flex:1;min-width:180px;max-width:240px;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:20px 16px;cursor:pointer;transition:all .2s;text-align:center;}
+.decision-opt:hover{border-color:var(--accent);background:rgba(64,110,241,.08);}
+.decision-opt .opt-icon{font-size:28px;color:var(--muted);margin-bottom:10px;}
+.decision-opt:hover .opt-icon{color:var(--al);}
+.decision-opt .opt-title{font-size:13px;font-weight:500;margin-bottom:4px;}
+.decision-opt .opt-sub{font-size:11px;color:var(--dim);font-family:var(--mono);}
+.convert-out{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:24px;max-width:760px;margin:0 auto;}
+.convert-section{margin-bottom:24px;}
+.convert-label{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.convert-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.summary-line{font-size:13px;color:var(--muted);margin-bottom:6px;}
+.summary-line span{color:var(--text);font-weight:500;}
+.divider{height:1px;background:var(--border);margin:24px 0;}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo"><div class="logo-mark">SK</div>Amazon Report Validator</div>
+    <div class="header-meta">
+      <span class="header-tag">Skai Internal Tool</span>
+      <span class="version-tag">v1.4 · May 7, 2026</span>
+    </div>
+  </header>
+  <main>
+    <div id="step-upload">
+      <p class="eyebrow">STEP 01 / UPLOAD</p>
+      <h1>Validate &amp; convert<br>Amazon reports</h1>
+      <p class="subtitle">Drop client-supplied report files. Check formatting, generate a campaign name list<br>for KS match, and export a converted CSV ready for 24x7.</p>
+      <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+        <div class="drop-icon">&#8659;</div>
+        <p class="drop-label">Drop files here or click to upload</p>
+        <p class="drop-sub">CSV · XLSX — daily, weekly &amp; template formats</p>
+      </div>
+      <input type="file" id="file-input" multiple accept=".csv,.xlsx,.xls" style="display:none">
+      <div class="file-formats">
+        <span class="fmt-tag">campaign_summary</span><span class="fmt-tag">SP_Standardized</span>
+        <span class="fmt-tag">SKAI_DATA_BY_DAY</span><span class="fmt-tag">SB_CAMP_LT</span>
+        <span class="fmt-tag">Weekly cheatsheet</span><span class="fmt-tag">Template</span>
+      </div>
+      <div id="file-pills" class="file-pills" style="display:none"></div>
+      <div class="actions" id="upload-actions" style="display:none">
+        <button class="btn btn-primary" onclick="goToValidation()">&#10003; Run validation</button>
+        <button class="btn" onclick="document.getElementById('file-input').click()">+ Add more</button>
+      </div>
+    </div>
+
+    <div id="step-validation" style="display:none">
+      <div class="step-bar">
+        <div class="step-item done"><div class="step-num">&#10003;</div>Upload</div><div class="step-line"></div>
+        <div class="step-item active"><div class="step-num">02</div>Validate</div><div class="step-line"></div>
+        <div class="step-item"><div class="step-num">03</div>Decide</div><div class="step-line"></div>
+        <div class="step-item"><div class="step-num">04</div>Output</div>
+      </div>
+      <div class="tabs" id="tab-bar"></div>
+      <div id="tab-contents"></div>
+      <div class="actions" style="margin-top:24px">
+        <button class="btn btn-primary" onclick="goToDecision()">&#8594; Continue</button>
+        <button class="btn" onclick="reset()">&#8635; Start over</button>
+      </div>
+    </div>
+
+    <div id="step-decision" style="display:none">
+      <div class="step-bar">
+        <div class="step-item done"><div class="step-num">&#10003;</div>Upload</div><div class="step-line"></div>
+        <div class="step-item done"><div class="step-num">&#10003;</div>Validate</div><div class="step-line"></div>
+        <div class="step-item active"><div class="step-num">03</div>Decide</div><div class="step-line"></div>
+        <div class="step-item"><div class="step-num">04</div>Output</div>
+      </div>
+      
+      <div class="decision-card" style="margin-bottom: 24px;">
+        <p class="decision-title">What would you like to do?</p>
+        <p class="decision-body">Choose your next step.</p>
+        <div class="decision-row">
+          <div class="decision-opt" onclick="goToDiagnostic()">
+            <div class="opt-icon">&#128196;</div>
+            <div class="opt-title">Download diagnostic</div>
+            <div class="opt-sub">Full report card as CSV</div>
+          </div>
+          <div class="decision-opt" onclick="goToConvert()">
+            <div class="opt-icon">&#8644;</div>
+            <div class="opt-title">Convert &amp; export</div>
+            <div class="opt-sub">24x7-ready output</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="convert-out" style="max-width: 580px; margin: 0 auto 24px;">
+        <div class="convert-section" style="margin-bottom: 0;">
+          <p class="convert-label">Campaign names — KS match format</p>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:10px">Paste directly into the Campaign Names field (KS match)</p>
+          <div class="output-box" id="decision-badger-string"></div>
+          <div class="output-actions">
+            <button class="btn" onclick="copyEl('decision-badger-string','decision-copy-fb')">&#128203; Copy string</button>
+            <span class="copy-feedback" id="decision-copy-fb">Copied!</span>
+            <a href="https://badger.kenshoo.com/sqltemplate/6fd6d964-7db7-11ea-baeb-005056a56e93" target="_blank" class="btn btn-primary">&#8599; Open KS match</a>
+          </div>
+        </div>
+      </div>
+      
+      <div style="text-align:center"><button class="btn" onclick="goToValidation()">&#8592; Back to results</button></div>
+    </div>
+
+    <div id="step-output" style="display:none">
+      <div class="step-bar">
+        <div class="step-item done"><div class="step-num">&#10003;</div>Upload</div><div class="step-line"></div>
+        <div class="step-item done"><div class="step-num">&#10003;</div>Validate</div><div class="step-line"></div>
+        <div class="step-item done"><div class="step-num">&#10003;</div>Decide</div><div class="step-line"></div>
+        <div class="step-item active"><div class="step-num">04</div>Output</div>
+      </div>
+      
+      <div id="output-diagnostic" style="display:none">
+        <div class="convert-out">
+          <div class="convert-section">
+            <p class="convert-label">Diagnostic report</p>
+            <p class="summary-line" id="diag-summary"></p>
+          </div>
+          <div class="actions">
+            <button class="btn btn-primary" onclick="downloadCSV(diagnosticRows, 'diagnostic_report.csv')">&#128229; Download diagnostic CSV</button>
+            <button class="btn" onclick="goToConvert()">&#8644; Also convert file</button>
+            <button class="btn" onclick="reset()">&#8635; Start over</button>
+          </div>
+        </div>
+      </div>
+      
+      <div id="output-convert" style="display:none">
+        <div class="convert-out">
+          <div class="convert-section">
+            <p class="convert-label">Converted file</p>
+            <div id="convert-summary"></div>
+          </div>
+          <div class="divider"></div>
+          <div class="actions">
+            <button class="btn btn-primary" onclick="downloadCSV(convertedRows, 'converted_data.csv')">&#128229; Download converted CSV</button>
+            <button class="btn" onclick="goToDiagnostic()">&#128196; Also get diagnostic</button>
+            <button class="btn" onclick="reset()">&#8635; Start over</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <span class="footer-txt">Amazon Report Validator · v1.4 · Last modified May 7, 2026</span>
+    <span class="footer-txt">Designed by <span>William LaBissoniere</span> · Skai Internal</span>
+  </footer>
+</div>
+
+<script>
+const fileStore=[];
+let convertedRows=[],diagnosticRows=[];
+
+function nh(h){return(h||'').toString().trim().toLowerCase().replace(/\s+/g,' ');}
+
+const FORMATS={
+  template:{label:'Template (converted)',granularity:'unknown',isTemplate:true,
+    detect:h=>{const s=h.map(nh);return s.includes('campaign_name')&&s.includes('hit_day')&&s.includes('spend')&&s.includes('impressions')&&s.includes('clicks');},
+    required:['campaign_name','hit_day','impressions','clicks','spend'],
+    date_col:'hit_day',campaign_col:'campaign_name',impr_col:'impressions',clicks_col:'clicks',spend_col:'spend',rev_col:'sales',country_col:'country',adtype_col:'ad_type',brand_col:'ams_brand_name',week_cols:null,
+    col_pairs:[['campaign_name','campaign_name'],['impressions','impressions'],['clicks','clicks'],['spend','spend'],['sales','revenue'],['hit_day','date'],['country','country'],['ad_type','ad type'],['ams_brand_name','brand name']]},
+  campaign_summary:{label:'campaign_summary',granularity:'daily',
+    detect:h=>{const s=h.map(nh);return s.includes('report_date')&&s.includes('ad_impressions');},
+    required:['report_date','account_name','campaign_name','ad_impressions','ad_clicks','ad_spend','ad_revenue'],
+    date_col:'report_date',campaign_col:'campaign_name',impr_col:'ad_impressions',clicks_col:'ad_clicks',spend_col:'ad_spend',rev_col:'ad_revenue',country_col:'country_code',adtype_col:null,brand_col:'account_name',week_cols:null,
+    col_pairs:[['campaign_name','campaign_name'],['ad_impressions','impressions'],['ad_clicks','clicks'],['ad_spend','spend'],['ad_revenue','revenue'],['report_date','date'],['country_code','country'],['account_name','brand name']]},
+  sp_standardized:{label:'SP_Standardized',granularity:'daily',
+    detect:h=>{const s=h.map(nh);return s.includes('campaignid')&&s.includes('impressions')&&!s.includes('campaign name')&&!s.includes('campaign_name');},
+    required:['date','campaignid','impressions','clicks','spend','sales'],
+    date_col:'date',campaign_col:'campaignid',impr_col:'impressions',clicks_col:'clicks',spend_col:'spend',rev_col:'sales',country_col:null,adtype_col:null,brand_col:null,week_cols:null,
+    col_pairs:[['campaignid','campaign_name'],['impressions','impressions'],['clicks','clicks'],['spend','spend'],['sales','revenue'],['date','date']]},
+  skai_by_day:{label:'SKAI_DATA_BY_DAY',granularity:'daily',
+    detect:h=>{const s=h.map(nh);return s.includes('campaign name')&&s.includes('imp.')&&s.includes('day');},
+    required:['campaign name','imp.','clicks','cost','rev.','day'],
+    date_col:'day',campaign_col:'campaign name',impr_col:'imp.',clicks_col:'clicks',spend_col:'cost',rev_col:'rev.',country_col:null,adtype_col:null,brand_col:null,week_cols:null,
+    col_pairs:[['campaign name','campaign_name'],['imp.','impressions'],['clicks','clicks'],['cost','spend'],['rev.','revenue'],['day','date']]},
+  sb_camp_lt:{label:'SB_CAMP_LT',granularity:'daily',
+    detect:h=>{const s=h.map(nh);return s.includes('campaign name')&&s.some(x=>x.startsWith('14 day total sales'));},
+    required:['date','campaign name','impressions','clicks','spend'],
+    date_col:'date',campaign_col:'campaign name',impr_col:'impressions',clicks_col:'clicks',spend_col:'spend',rev_col:'14 day total sales',country_col:'country',adtype_col:null,brand_col:null,week_cols:null,
+    col_pairs:[['campaign name','campaign_name'],['impressions','impressions'],['clicks','clicks'],['spend','spend'],['14 day total sales','revenue'],['date','date'],['country','country']]},
+  weekly_cheatsheet:{label:'Weekly cheatsheet',granularity:'weekly',
+    detect:h=>{const s=h.map(nh);return s.some(x=>x==='campaign_name'||x==='campaign name')&&s.some(x=>x.includes('reporting_year')||x.includes('report_year'))&&s.some(x=>x.includes('reporting_week')||x.includes('report_week'));},
+    required:['campaign_name','reporting_year','reporting_week','impressions','clicks','spend'],
+    date_col:null,campaign_col:'campaign_name',impr_col:'impressions',clicks_col:'clicks',spend_col:'spend',rev_col:'sales',country_col:'marketplace',adtype_col:'campaign_type',brand_col:'ams_brand_name',
+    week_cols:['reporting_year','reporting_month','reporting_week'],
+    col_pairs:[['campaign_name','campaign_name'],['impressions','impressions'],['clicks','clicks'],['spend','spend'],['sales','revenue'],['reporting_year + reporting_month + reporting_week','date period'],['marketplace','country'],['campaign_type','ad type'],['ams_brand_name','brand name']]}
+};
+
+const COUNTRY_MAP={'United States':'US','Canada':'CA','Mexico':'MX','United Kingdom':'UK','France':'FR','Italy':'IT','Spain':'ES','Germany':'DE','India':'IN','Japan':'JP'};
+
+function detectFormat(rawHeaders){
+  const h=rawHeaders.map(nh);
+  for(const[k,f]of Object.entries(FORMATS)){if(f.detect(h))return k;}
+  return'unknown';
+}
+function getKey(row,key){if(!key)return undefined;const nk=nh(key);return Object.keys(row).find(k=>nh(k)===nk||nh(k).startsWith(nk));}
+function gv(row,key){const k=getKey(row,key);return k!==undefined?row[k]:'';}
+function inferAdType(n){n=(n||'').toUpperCase();if(n.includes('SBV'))return'SBV';if(/\bSBR\b/.test(n))return'SB';if(/\bSB\b/.test(n))return'SB';if(/\bSP\b/.test(n))return'SP';if(/\bSD\b/.test(n))return'SD';return'?';}
+function getAdType(row,schema){
+  if(schema.adtype_col){const v=(gv(row,schema.adtype_col)||'').toUpperCase().trim();if(['SBV','SB','SP','SD'].includes(v))return v;if(v.includes('SBV'))return'SBV';if(v.includes('SB'))return'SB';if(v.includes('SP'))return'SP';if(v.includes('SD'))return'SD';}
+  return inferAdType(gv(row,schema.campaign_col));
+}
+
+// Rigid date formatter to enforce M/D/YYYY and prevent 2-digit year drift in Excel
+function fmtDate(d) {
+  if (!d) return '';
+  let str = String(d).trim();
+  
+  // Catch M/D/YY or M/D/YYYY (with - or /)
+  let m = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  if (m) {
+    let yr = parseInt(m[3], 10);
+    // Expand 2 digit years 
+    if (yr < 100) yr += (yr < 50 ? 2000 : 1900);
+    return `${parseInt(m[1], 10)}/${parseInt(m[2], 10)}/${yr}`;
+  }
+  
+  // Catch standard YYYY-MM-DD
+  let m2 = str.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+  if (m2) {
+    return `${parseInt(m2[2], 10)}/${parseInt(m2[3], 10)}/${m2[1]}`;
+  }
+  
+  // Fallback to JS engine 
+  const dt = new Date(str);
+  if (!isNaN(dt)) {
+    return `${dt.getMonth() + 1}/${dt.getDate()}/${dt.getFullYear()}`;
+  }
+  
+  return str;
+}
+
+function normCountry(c){if(!c)return'US';return COUNTRY_MAP[c]||String(c).trim();}
+
+function checkDuplicates(rows,schema){
+  const periodKey=r=>{
+    if(schema.date_col)return String(gv(r,schema.date_col)||'').trim();
+    if(schema.week_cols)return schema.week_cols.map(c=>String(gv(r,c)||'')).join('-');
+    return'unknown';
+  };
+  const seen=new Map();
+  rows.forEach(r=>{
+    const camp=(gv(r,schema.campaign_col)||'').trim();
+    if(!camp||camp.toLowerCase()==='totals:')return;
+    const key=`${camp}|||${periodKey(r)}`;
+    seen.set(key,(seen.get(key)||0)+1);
+  });
+  let dupKeys=0,dupRows=0;const dupExamples=[];
+  seen.forEach((count,key)=>{
+    if(count>1){dupKeys++;dupRows+=count-1;if(dupExamples.length<3){const[camp,period]=key.split('|||');dupExamples.push({camp,period,count});}}
+  });
+  return{totalRows:rows.length,uniqueRows:seen.size,dupRows,dupKeys,dupExamples,isDup:dupRows>0};
+}
+
+function buildColMapHTML(schema,fileHeaders){
+  const fh=fileHeaders.map(nh);
+  return`<table class="col-map-table"><thead><tr><th>Source column</th><th>Template field</th><th style="text-align:center">Mapped</th></tr></thead><tbody>`+
+    (schema.col_pairs||[]).map(([src,tmpl])=>{
+      const found=src.split('+').map(s=>s.trim()).every(sc=>fh.some(h=>h===nh(sc)||h.startsWith(nh(sc))));
+      return`<tr><td class="cmt-file">${src}</td><td class="cmt-tmpl">${tmpl}</td><td class="${found?'cmt-ok':'cmt-miss'}">${found?'&#10003;':'&#10007;'}</td></tr>`;
+    }).join('')+`</tbody></table>`;
+}
+
+function buildGranBanner(schema,rows){
+  if(schema.isTemplate){
+    const sample=(rows||[]).slice(0,200).map(r=>String(gv(r,'hit_day')||'').trim()).filter(Boolean);
+    const looksWeekly=sample.some(v=>/\d{4}-W\d/.test(v)||/week/i.test(v)||(/^\d{4}/.test(v)&&!v.includes('/')));
+    const gran=looksWeekly?'weekly':'daily';
+    return`<div class="gran-banner ${gran}" style="gap:16px">
+      <span class="badge b-template">&#9654; Already converted</span>
+      <span class="gran-label">${gran==='weekly'?'&#128197; WEEKLY DATA':'&#128197; DAILY DATA'}</span>
+      <span class="gran-desc">${gran==='weekly'?'hit_day values appear to be week-period identifiers.':'hit_day values appear to be calendar dates.'}</span>
+    </div>`;
+  }
+  if(schema.granularity==='weekly'){
+    return`<div class="gran-banner weekly"><span class="gran-label">&#128197; WEEKLY FILE</span><span class="gran-desc">Period columns: reporting_year + reporting_month + reporting_week</span></div>`;
+  }
+  return`<div class="gran-banner daily"><span class="gran-label">&#128197; DAILY FILE</span><span class="gran-desc">Date column: <strong>${schema.date_col}</strong> · One row per campaign per calendar day.</span></div>`;
+}
+
+function buildDedupHTML(dd){
+  const pct=dd.totalRows>0?Math.round((dd.uniqueRows/dd.totalRows)*100):100;
+  const dupPct=100-pct;
+  const fc=dd.isDup?'warn':'ok';
+  const statusBadge=dd.isDup?`<span class="badge b-warn">&#9651; ${dd.dupRows.toLocaleString()} duplicate rows</span>`:`<span class="badge b-ok">&#10003; No duplicates</span>`;
+  return`<div class="dedup-widget">
+    <div class="dedup-head"><span class="dedup-title">&#128270; DUPLICATE CHECK — Campaign + Date</span>${statusBadge}</div>
+    <div class="dedup-bars">
+      <div class="dedup-row"><span class="dedup-row-label">Total rows</span><div class="dedup-track"><div class="dedup-fill ok" style="width:100%"></div></div><span class="dedup-row-val">${dd.totalRows.toLocaleString()}</span></div>
+      <div class="dedup-row"><span class="dedup-row-label">Unique combos</span><div class="dedup-track"><div class="dedup-fill ok" style="width:${pct}%"></div></div><span class="dedup-row-val">${dd.uniqueRows.toLocaleString()} (${pct}%)</span></div>
+      ${dd.isDup?`<div class="dedup-row"><span class="dedup-row-label">Duplicate rows</span><div class="dedup-track"><div class="dedup-fill ${fc}" style="width:${Math.max(dupPct,2)}%"></div></div><span class="dedup-row-val" style="color:var(--${fc==='err'?'red':'amber'})">${dd.dupRows.toLocaleString()} (${dupPct}%)</span></div>`:''}
+    </div>
+    <div class="dedup-summary">
+      ${dd.isDup?`<strong>${dd.dupKeys.toLocaleString()} campaign-period combinations</strong> appear more than once. They will be automatically aggregated (summed) during conversion.
+        ${dd.dupExamples.length?`<div class="dedup-sample"><div class="dedup-sample-title">Examples</div>${dd.dupExamples.map(e=>`<div class="dedup-sample-row">&#9654; "${e.camp}" on ${e.period} — appears ${e.count}x</div>`).join('')}</div>`:''}`:
+        `<strong>All ${dd.uniqueRows.toLocaleString()} campaign-period combinations are unique.</strong> File is clean for upload.`}
+    </div>
+  </div>`;
+}
+
+function validateData(rows,schema){
+  const issues=[];
+  const fileHeaders=Object.keys(rows[0]||{});
+  const hLower=fileHeaders.map(nh);
+  const missing=schema.required.filter(r=>!hLower.some(h=>h===nh(r)||h.startsWith(nh(r))));
+  if(missing.length)issues.push({level:'err',msg:`Missing required columns: ${missing.join(', ')}`});
+  const s=rows.slice(0,Math.min(rows.length,2000));
+  let negI=0,negC=0,negS=0,nullD=0,ctrBad=0;
+  s.forEach(r=>{
+    const imp=parseFloat(gv(r,schema.impr_col)),clk=parseFloat(gv(r,schema.clicks_col)),spd=parseFloat(gv(r,schema.spend_col));
+    const dv=schema.date_col?gv(r,schema.date_col):(schema.week_cols?gv(r,schema.week_cols[0]):null);
+    if(!isNaN(imp)&&imp<0)negI++;if(!isNaN(clk)&&clk<0)negC++;if(!isNaN(spd)&&spd<0)negS++;
+    if(dv===null||dv===undefined||dv==='')nullD++;
+    if(!isNaN(imp)&&imp>0&&!isNaN(clk)&&clk/imp>1)ctrBad++;
+  });
+  if(negI)issues.push({level:'err',msg:`${negI} rows with negative impressions`});
+  if(negC)issues.push({level:'err',msg:`${negC} rows with negative clicks`});
+  if(negS)issues.push({level:'warn',msg:`${negS} rows with negative spend`});
+  if(nullD&&!schema.isTemplate)issues.push({level:'warn',msg:`${nullD} rows with missing date`});
+  if(ctrBad)issues.push({level:'warn',msg:`${ctrBad} rows where clicks exceed impressions`});
+  if(schema.granularity==='daily'&&schema.date_col){
+    const parsed=s.map(r=>new Date(gv(r,schema.date_col))).filter(d=>!isNaN(d));
+    if(parsed.length){const mn=new Date(Math.min(...parsed)),mx=new Date(Math.max(...parsed));issues.push({level:'info',msg:`Date range: ${mn.toLocaleDateString()} – ${mx.toLocaleDateString()}`});}
+  } else if(schema.granularity==='weekly'&&schema.week_cols){
+    const years=[...new Set(s.map(r=>gv(r,schema.week_cols[0])).filter(Boolean))].sort();
+    const weeks=[...new Set(s.map(r=>gv(r,schema.week_cols[2])).filter(Boolean))].sort((a,b)=>+a-+b);
+    if(years.length&&weeks.length)issues.push({level:'info',msg:`Period: Year ${years.join(', ')} · Weeks ${weeks[0]}–${weeks[weeks.length-1]}`});
+  }
+  const totalSpend=rows.reduce((s,r)=>s+(parseFloat(gv(r,schema.spend_col))||0),0);
+  const totalRev=schema.rev_col?rows.reduce((s,r)=>s+(parseFloat(gv(r,schema.rev_col))||0),0):null;
+  const totalImpr=rows.reduce((s,r)=>s+(parseInt(gv(r,schema.impr_col))||0),0);
+  const dedup=checkDuplicates(rows,schema);
+  return{issues,totalRows:rows.length,totalSpend,totalRev,totalImpr,fileHeaders,dedup};
+}
+
+function extractCampaigns(rows,schema){
+  const seen=new Map();
+  rows.forEach(r=>{
+    const name=(gv(r,schema.campaign_col)||'').toString().trim();
+    if(!name||name.toLowerCase()==='totals:')return;
+    const type=getAdType(r,schema);
+    if(!seen.has(name))seen.set(name,{name,type,count:0,spend:0,rev:0});
+    const e=seen.get(name);e.count++;e.spend+=parseFloat(gv(r,schema.spend_col))||0;
+    if(schema.rev_col)e.rev+=parseFloat(gv(r,schema.rev_col))||0;
+  });
+  return[...seen.values()].sort((a,b)=>b.spend-a.spend);
+}
+
+function renderFileReport(file){
+  const schema=FORMATS[file.format]||FORMATS.campaign_summary;
+  const v=file.validation,camps=file.campaigns;
+  const errs=v.issues.filter(i=>i.level==='err').length,warns=v.issues.filter(i=>i.level==='warn').length;
+  const scoreBadge=errs>0?`<span class="badge b-err">&#10007; ${errs} error${errs>1?'s':''}</span>`:warns>0?`<span class="badge b-warn">&#9651; ${warns} warning${warns>1?'s':''}</span>`:`<span class="badge b-ok">&#10003; Pass</span>`;
+  const fmtBadge=file.format==='unknown'?`<span class="badge b-err">unknown format</span>`:`<span class="badge b-fmt">${schema.label}</span>`;
+  const adTypeCounts={};camps.forEach(c=>{adTypeCounts[c.type]=(adTypeCounts[c.type]||0)+1;});
+  const adStr=Object.entries(adTypeCounts).sort((a,b)=>b[1]-a[1]).map(([t,n])=>`${t}: ${n}`).join(' · ');
+  const roas=v.totalSpend>0&&v.totalRev?(v.totalRev/v.totalSpend).toFixed(2):null;
+  const campRows=camps.slice(0,100).map(c=>`<tr><td class="name">${c.name}</td><td><span class="badge ${c.type==='?'?'b-warn':'b-ok'}" style="font-size:10px">${c.type}</span></td><td class="spend-val">$${Math.round(c.spend).toLocaleString()}</td>${v.totalRev?`<td class="num">${c.spend>0?(c.rev/c.spend).toFixed(2)+'x':'—'}</td>`:''}<td class="num">${c.count.toLocaleString()}</td></tr>`).join('');
+  const moreStr=camps.length>100?`<tr><td colspan="5" class="more-row">+ ${camps.length-100} more campaigns</td></tr>`:'';
+  const issuesHTML=v.issues.map(i=>`<div class="issue ${i.level}"><span class="issue-icon">${i.level==='err'?'&#10007;':i.level==='warn'?'&#9651;':'&#8505;'}</span>${i.msg}</div>`).join('');
+  return`
+    <div class="card">
+      <div class="card-head"><span class="card-title">&#128196; ${file.name}</span><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">${fmtBadge} ${scoreBadge}</div></div>
+      ${buildGranBanner(schema,file.rows)}
+      ${buildColMapHTML(schema,v.fileHeaders||[])}
+      <div class="metrics">
+        <div class="metric"><div class="metric-label">ROWS</div><div class="metric-val">${v.totalRows.toLocaleString()}</div></div>
+        <div class="metric"><div class="metric-label">CAMPAIGNS</div><div class="metric-val accent">${camps.length.toLocaleString()}</div></div>
+        <div class="metric"><div class="metric-label">SPEND</div><div class="metric-val">$${Math.round(v.totalSpend).toLocaleString()}</div></div>
+        ${v.totalRev!==null?`<div class="metric"><div class="metric-label">REVENUE</div><div class="metric-val">$${Math.round(v.totalRev).toLocaleString()}</div></div>`:''}
+        ${roas?`<div class="metric"><div class="metric-label">ROAS</div><div class="metric-val">${roas}x</div></div>`:''}
+        <div class="metric"><div class="metric-label">IMPRESSIONS</div><div class="metric-val">${v.totalImpr>=1e6?(v.totalImpr/1e6).toFixed(1)+'M':(v.totalImpr/1e3).toFixed(0)+'K'}</div></div>
+        ${v.dedup.isDup?`<div class="metric"><div class="metric-label">DUP ROWS</div><div class="metric-val ${v.dedup.dupRows/v.totalRows>0.2?'err':'warn'}">${v.dedup.dupRows.toLocaleString()}</div></div>`:''}
+      </div>
+      ${buildDedupHTML(v.dedup)}
+      ${v.issues.length?`<div class="issues">${issuesHTML}</div>`:''}
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-title">&#9776; Campaign names</span><span style="font-size:11px;color:var(--dim);font-family:var(--mono)">${adStr}</span></div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th style="width:52%">Campaign name</th><th style="width:10%">Type</th><th style="width:16%;text-align:right">Spend</th>${v.totalRev?'<th style="width:10%;text-align:right">ROAS</th>':''}<th style="text-align:right">Rows</th></tr></thead>
+        <tbody>${campRows}${moreStr}</tbody>
+      </table></div>
+    </div>`;
+}
+
+function goToValidation(){
+  show('step-validation');
+  const tabBar=document.getElementById('tab-bar'),tabContents=document.getElementById('tab-contents');
+  tabBar.innerHTML='';tabContents.innerHTML='';
+  fileStore.forEach((file,i)=>{
+    const schema=FORMATS[file.format]||FORMATS.campaign_summary;
+    file.validation=validateData(file.rows,schema);
+    file.campaigns=extractCampaigns(file.rows,schema);
+    const tab=document.createElement('button');
+    tab.className='tab'+(i===0?' active':'');
+    tab.textContent=file.name.length>24?file.name.slice(0,22)+'…':file.name;
+    tab.onclick=()=>{document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));tab.classList.add('active');document.getElementById('tc-'+i).classList.add('active');};
+    tabBar.appendChild(tab);
+    const content=document.createElement('div');content.className='tab-content'+(i===0?' active':'');content.id='tc-'+i;
+    content.innerHTML=renderFileReport(file);tabContents.appendChild(content);
+  });
+}
+
+function goToDecision(){
+  show('step-decision');
+  const allCamps=[...new Map(fileStore.flatMap(f=>f.campaigns).map(c=>[c.name,c])).values()];
+  document.getElementById('decision-badger-string').textContent=buildBadgerString(allCamps);
+}
+
+function goToDiagnostic(){
+  show('step-output');
+  document.getElementById('output-diagnostic').style.display='block';
+  document.getElementById('output-convert').style.display='none';
+  buildDiagnostic();
+  const total=fileStore.reduce((s,f)=>s+f.campaigns.length,0);
+  const errs=fileStore.reduce((s,f)=>s+f.validation.issues.filter(i=>i.level==='err').length,0);
+  document.getElementById('diag-summary').innerHTML=`<span>${fileStore.length} file${fileStore.length>1?'s':''}</span> · <span>${total.toLocaleString()} campaigns</span> · <span style="color:${errs?'var(--red)':'var(--green)'}">${errs} errors</span>`;
+}
+
+function goToConvert(){
+  show('step-output');
+  document.getElementById('output-convert').style.display='block';
+  document.getElementById('output-diagnostic').style.display='none';
+  buildConvert();
+  buildDiagnostic();
+}
+
+function buildDiagnostic(){
+  diagnosticRows=[];
+  fileStore.forEach(file=>{
+    const schema=FORMATS[file.format]||FORMATS.campaign_summary;
+    const dd=file.validation.dedup;
+    file.campaigns.forEach(c=>{
+      diagnosticRows.push({source_file:file.name,format:schema.label,granularity:schema.granularity,campaign_name:c.name,ad_type:c.type,row_count:c.count,total_spend:c.spend.toFixed(2),total_revenue:c.rev.toFixed(2),roas:c.spend>0?(c.rev/c.spend).toFixed(2):'',duplicate_rows:dd.dupRows,duplicate_combos:dd.dupKeys,dedup_status:dd.isDup?'DUPLICATES FOUND':'CLEAN',error_count:file.validation.issues.filter(i=>i.level==='err').length,warning_count:file.validation.issues.filter(i=>i.level==='warn').length,issues:file.validation.issues.filter(i=>i.level!=='info').map(i=>i.msg).join(' | ')});
+    });
+  });
+}
+
+function convertRows(rows, schema) {
+  let mapped = rows.filter(r => {
+    const n = (gv(r, schema.campaign_col) || '').trim();
+    return n && n.toLowerCase() !== 'totals:';
+  }).map(r => {
+    // Generate base mapping columns
+    let base = {
+      account_name: gv(r, schema.brand_col || 'account_name') || gv(r, 'ams_brand_name') || '',
+      campaign_name: (gv(r, schema.campaign_col) || '').trim(),
+      ad_type: getAdType(r, schema) || inferAdType(gv(r, 'campaign_name')),
+      ams_brand_name: gv(r, schema.brand_col || 'ams_brand_name') || '',
+      country: normCountry(schema.country_col ? gv(r, schema.country_col) : gv(r, 'country') || 'US'),
+      impressions: parseInt(gv(r, schema.impr_col || 'impressions')) || 0,
+      clicks: parseInt(gv(r, schema.clicks_col || 'clicks')) || 0,
+      sales: parseFloat(gv(r, schema.rev_col || 'sales')) || 0,
+      spend: parseFloat(gv(r, schema.spend_col || 'spend')) || 0,
+      units: parseInt(gv(r, 'units') || gv(r, 'ad_orders') || 0) || 0
+    };
+
+    // Branch logic specifically for Weekly vs Daily granularity outputs
+    if (schema.isTemplate) {
+      if (gv(r, 'reporting_year') || gv(r, 'reporting_week')) {
+        base.reporting_year = gv(r, 'reporting_year') || '';
+        if (gv(r, 'reporting_month')) base.reporting_month = gv(r, 'reporting_month') || '';
+        base.reporting_week = gv(r, 'reporting_week') || '';
+      } else {
+        base.hit_day = fmtDate(gv(r, 'hit_day') || '');
+      }
+    } else {
+      if (schema.granularity === 'weekly' && schema.week_cols) {
+        base.reporting_year = gv(r, schema.week_cols[0]) || '';
+        if (schema.week_cols[1]) base.reporting_month = gv(r, schema.week_cols[1]) || '';
+        base.reporting_week = gv(r, schema.week_cols[2]) || '';
+      } else {
+        base.hit_day = fmtDate(gv(r, schema.date_col));
+      }
+    }
+    return base;
+  });
+
+  const aggregated = new Map();
+  mapped.forEach(r => {
+    // Drop rows where all core metrics are exactly 0
+    if (r.impressions === 0 && r.clicks === 0 && r.sales === 0 && r.spend === 0 && r.units === 0) return;
+
+    // Group by unique dimensions to aggregate duplicates
+    const keyParts = [r.account_name, r.campaign_name, r.ad_type, r.ams_brand_name, r.country];
+    if (r.hit_day !== undefined) keyParts.push(r.hit_day);
+    if (r.reporting_year !== undefined) keyParts.push(r.reporting_year, r.reporting_month || '', r.reporting_week);
+
+    const key = keyParts.join('|');
+    if (aggregated.has(key)) {
+      const existing = aggregated.get(key);
+      existing.impressions += r.impressions;
+      existing.clicks += r.clicks;
+      existing.sales += r.sales;
+      existing.spend += r.spend;
+      existing.units += r.units;
+      
+      // Clean up floating point math issues from JS addition
+      existing.sales = parseFloat(existing.sales.toFixed(2));
+      existing.spend = parseFloat(existing.spend.toFixed(2));
+    } else {
+      aggregated.set(key, { ...r });
+    }
+  });
+
+  return Array.from(aggregated.values());
+}
+
+function buildConvert(){
+  convertedRows=[];
+  fileStore.forEach(file=>{const schema=FORMATS[file.format]||FORMATS.campaign_summary;convertedRows=convertedRows.concat(convertRows(file.rows,schema));});
+  const allCamps=[...new Map(fileStore.flatMap(f=>f.campaigns).map(c=>[c.name,c])).values()];
+  const ts=convertedRows.reduce((s,r)=>s+r.spend,0),tr=convertedRows.reduce((s,r)=>s+r.sales,0);
+  document.getElementById('convert-summary').innerHTML=`<p class="summary-line"><span>${convertedRows.length.toLocaleString()} rows</span> converted to template format</p><p class="summary-line"><span>${allCamps.length.toLocaleString()} unique campaigns</span> · Spend: <span>$${Math.round(ts).toLocaleString()}</span> · Revenue: <span>$${Math.round(tr).toLocaleString()}</span></p>`;
+}
+
+function buildBadgerString(c){return c.map(x=>`('${x.name.replace(/'/g,"''")}')`).join(',');}
+
+function toCSV(rows) {
+  if (!rows.length) return '';
+  
+  // Extract all keys used across all rows (dynamically handles weekly vs daily columns)
+  const allKeys = new Set();
+  rows.forEach(r => Object.keys(r).forEach(k => allKeys.add(k)));
+  
+  // Enforce a tidy order for the CSV columns 
+  const preferredOrder = [
+    'account_name', 'campaign_name', 'ad_type', 'ams_brand_name', 'country', 
+    'hit_day', 'reporting_year', 'reporting_month', 'reporting_week', 
+    'impressions', 'clicks', 'sales', 'spend', 'units'
+  ];
+  
+  const keys = preferredOrder.filter(k => allKeys.has(k));
+  
+  const esc = v => {
+    const s = String(v == null ? '' : v);
+    return (s.includes(',') || s.includes('"') || s.includes('\n')) ? `"${s.replace(/"/g, '""')}"` : `${s}`;
+  };
+  
+  return [keys.join(','), ...rows.map(r => keys.map(k => esc(r[k])).join(','))].join('\r\n');
+}
+
+// ── Native File Download ───────────
+function downloadCSV(rows, filename) {
+  if(!rows || !rows.length) {
+    alert('No data available to download.');
+    return;
+  }
+  const csvData = toCSV(rows);
+  const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  
+  const a = document.createElement('a');
+  a.href = url;
+  a.setAttribute('download', filename);
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function copyEl(elId,fbId){
+  const txt=document.getElementById(elId).textContent;
+  navigator.clipboard.writeText(txt).then(()=>{const fb=document.getElementById(fbId);fb.classList.add('show');setTimeout(()=>fb.classList.remove('show'),2000);});
+}
+
+function show(id){['step-upload','step-validation','step-decision','step-output'].forEach(s=>document.getElementById(s).style.display=s===id?'block':'none');}
+function reset(){fileStore.length=0;convertedRows=[];diagnosticRows=[];document.getElementById('file-pills').style.display='none';document.getElementById('file-pills').innerHTML='';document.getElementById('upload-actions').style.display='none';document.getElementById('file-input').value='';show('step-upload');}
+
+function processCSV(name,text){
+  const result=Papa.parse(text.trim(),{header:true,skipEmptyLines:true,dynamicTyping:false});
+  const fmt=detectFormat(result.meta.fields||[]);
+  fileStore.push({name,format:fmt,rows:result.data,headers:result.meta.fields||[]});
+  addPill(name,fmt);
+}
+function processXLSX(name,buffer){
+  const wb=XLSX.read(buffer,{type:'array'});
+  const data=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:'',raw:false});
+  const headers=data.length?Object.keys(data[0]):[];
+  const fmt=detectFormat(headers);
+  fileStore.push({name,format:fmt,rows:data,headers});
+  addPill(name,fmt);
+}
+function addPill(name,fmt){
+  const pills=document.getElementById('file-pills');
+  pills.style.display='flex';document.getElementById('upload-actions').style.display='flex';
+  const span=document.createElement('span');span.className='file-pill';
+  span.innerHTML=`&#128196; ${name.length>30?name.slice(0,28)+'…':name} <span class="fmt">${FORMATS[fmt]?.label||'unknown'}</span>`;
+  pills.appendChild(span);
+}
+function handleFile(file){
+  if(file.name.endsWith('.csv')){const r=new FileReader();r.onload=e=>processCSV(file.name,e.target.result);r.readAsText(file);}
+  else if(file.name.match(/\.xlsx?$/i)){const r=new FileReader();r.onload=e=>processXLSX(file.name,new Uint8Array(e.target.result));r.readAsArrayBuffer(file);}
+}
+document.getElementById('file-input').addEventListener('change',e=>[...e.target.files].forEach(handleFile));
+const dz=document.getElementById('drop-zone');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag');});
+dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');[...(e.dataTransfer.files||[])].forEach(handleFile);});
+</script>
+</body>
+</html>
